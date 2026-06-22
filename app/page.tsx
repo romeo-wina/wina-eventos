@@ -143,9 +143,13 @@ const estilos = `
   /* SOLO AL IMPRIMIR */
   .presupuesto-print-only { display: none; }
   @media print {
-    body > * { visibility: hidden; }
-    .presupuesto-print-only, .presupuesto-print-only * { visibility: visible; }
-    .presupuesto-print-only { display: block !important; position: fixed; top: 0; left: 0; width: 100%; padding: 36px; background: white; }
+    @page { size: A4; margin: 1.5cm; }
+    .wina-page { display: none !important; }
+    .wina-overlay { display: none !important; }
+    .presupuesto-print-only {
+      display: block !important;
+      width: 100%;
+    }
   }
 `;
 
