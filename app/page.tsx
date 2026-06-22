@@ -264,45 +264,48 @@ export default function Home() {
 
       {/* ── CONTENIDO SOLO VISIBLE AL IMPRIMIR ── */}
       <div className="presupuesto-print-only">
-        <div style={{ fontFamily: "'Georgia', serif", color: "#1A1A2E", maxWidth: 560, margin: "0 auto" }}>
-          {/* Encabezado */}
-          <div style={{ textAlign: "center", borderBottom: "2px solid #1A1A2E", paddingBottom: 20, marginBottom: 20 }}>
-            <p style={{ fontSize: 32, fontWeight: 700, letterSpacing: "0.12em", margin: 0 }}>WINA</p>
-            <p style={{ fontSize: 10, letterSpacing: "0.45em", color: "#9B7653", margin: "4px 0 0", fontFamily: "Arial, sans-serif" }}>EVENTOS</p>
-            <p style={{ fontSize: 12, color: "#6B6560", marginTop: 8, fontFamily: "Arial, sans-serif" }}>
+        <div style={{ fontFamily: "Arial, sans-serif", color: "#1A1A2E", maxWidth: 540, margin: "0 auto" }}>
+
+          {/* Encabezado con logo real — solo aparece una vez */}
+          <div style={{ textAlign: "center", borderBottom: "2px solid #1A1A2E", paddingBottom: 16, marginBottom: 18, pageBreakInside: "avoid", breakInside: "avoid" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Wina Eventos" style={{ height: 80, objectFit: "contain", display: "block", margin: "0 auto 6px" }} />
+            <p style={{ fontSize: 11, color: "#6B6560", margin: 0 }}>
               Alquiler de Vajilla · Cristalería · Mantelería · Picadas
             </p>
           </div>
 
-          {/* Título y fechas */}
-          <p style={{ textAlign: "center", fontSize: 17, letterSpacing: "0.2em", fontWeight: 700, marginBottom: 16 }}>PRESUPUESTO</p>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6B6560", fontFamily: "Arial, sans-serif", marginBottom: 20 }}>
-            <span>Emitido: {hoy}</span>
-            <span>Válido hasta: {validoHastaStr}</span>
+          {/* Título y fechas — solo una vez */}
+          <div style={{ pageBreakInside: "avoid", breakInside: "avoid", marginBottom: 18 }}>
+            <p style={{ textAlign: "center", fontSize: 15, letterSpacing: "0.2em", fontWeight: 700, marginBottom: 12 }}>PRESUPUESTO</p>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6B6560" }}>
+              <span>Emitido: {hoy}</span>
+              <span>Válido hasta: {validoHastaStr}</span>
+            </div>
           </div>
 
-          {/* Datos del evento */}
+          {/* Datos del cliente — solo una vez, al inicio */}
           {(nombre || telefono || fecha || invitados) && (
-            <div style={{ border: "1px solid #E8E2D9", borderRadius: 6, padding: "14px 16px", marginBottom: 20, fontFamily: "Arial, sans-serif", fontSize: 13 }}>
-              <p style={{ fontWeight: 700, fontSize: 10, letterSpacing: "0.1em", color: "#9B7653", marginBottom: 10 }}>DATOS DEL EVENTO</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px" }}>
+            <div style={{ border: "1px solid #E8E2D9", borderRadius: 6, padding: "12px 14px", marginBottom: 18, fontSize: 12, pageBreakInside: "avoid", breakInside: "avoid" }}>
+              <p style={{ fontWeight: 700, fontSize: 10, letterSpacing: "0.1em", color: "#9B7653", marginBottom: 8 }}>DATOS DEL EVENTO</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px" }}>
                 {nombre && <p style={{ margin: 0 }}><strong>Nombre:</strong> {nombre}</p>}
                 {telefono && <p style={{ margin: 0 }}><strong>Teléfono:</strong> {telefono}</p>}
-                {fecha && <p style={{ margin: 0 }}><strong>Fecha evento:</strong> {fecha}</p>}
+                {fecha && <p style={{ margin: 0 }}><strong>Fecha:</strong> {fecha}</p>}
                 {invitados && <p style={{ margin: 0 }}><strong>Invitados:</strong> {invitados}</p>}
               </div>
             </div>
           )}
 
-          {/* Detalle de productos */}
-          <p style={{ fontWeight: 700, fontSize: 10, letterSpacing: "0.1em", color: "#9B7653", marginBottom: 12, fontFamily: "Arial, sans-serif" }}>DETALLE</p>
+          {/* Detalle de productos — puede fluir a la siguiente página si es necesario */}
+          <p style={{ fontWeight: 700, fontSize: 10, letterSpacing: "0.1em", color: "#9B7653", marginBottom: 10 }}>DETALLE</p>
           {resumenProductos.map((cat) => (
-            <div key={cat.nombre} style={{ marginBottom: 14 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, borderBottom: "1px solid #E8E2D9", paddingBottom: 4, marginBottom: 6, fontFamily: "Arial, sans-serif", letterSpacing: "0.05em" }}>
+            <div key={cat.nombre} style={{ marginBottom: 12, pageBreakInside: "avoid", breakInside: "avoid" }}>
+              <p style={{ fontSize: 10, fontWeight: 700, borderBottom: "1px solid #E8E2D9", paddingBottom: 3, marginBottom: 5, letterSpacing: "0.05em" }}>
                 {cat.nombre.toUpperCase()}
               </p>
               {cat.items.map((item, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontFamily: "Arial, sans-serif", padding: "3px 0" }}>
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "2px 0" }}>
                   <span>{item.nombre} × {item.qty}</span>
                   <span style={{ fontWeight: 600 }}>${item.subtotal.toLocaleString("es-AR")}</span>
                 </div>
@@ -311,16 +314,17 @@ export default function Home() {
           ))}
 
           {/* Total */}
-          <div style={{ borderTop: "2px solid #1A1A2E", marginTop: 16, paddingTop: 16, display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 700, fontFamily: "Arial, sans-serif" }}>
+          <div style={{ borderTop: "2px solid #1A1A2E", marginTop: 14, paddingTop: 14, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 700, pageBreakInside: "avoid", breakInside: "avoid" }}>
             <span>TOTAL ESTIMADO</span>
             <span>${total.toLocaleString("es-AR")}</span>
           </div>
 
-          {/* Pie */}
-          <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid #E8E2D9", fontSize: 11, color: "#6B6560", fontFamily: "Arial, sans-serif", lineHeight: 1.7 }}>
-            <p>* Precios orientativos vigentes al {hoy}. Para eventos con fecha posterior a los 30 días, los valores deberán ser confirmados al momento de la reserva.</p>
-            <p style={{ marginTop: 8 }}>📍 La Plata, City Bell y alrededores · @winaeventos</p>
+          {/* Pie — solo al final del documento */}
+          <div style={{ marginTop: 20, paddingTop: 14, borderTop: "1px solid #E8E2D9", fontSize: 10, color: "#6B6560", lineHeight: 1.7, pageBreakInside: "avoid", breakInside: "avoid" }}>
+            <p>* Precios orientativos vigentes al {hoy}. Para eventos con fecha posterior a los 30 días, los valores se confirmarán al momento de la reserva.</p>
+            <p style={{ marginTop: 6 }}>📍 La Plata, City Bell y alrededores · @winaeventos</p>
           </div>
+
         </div>
       </div>
 
