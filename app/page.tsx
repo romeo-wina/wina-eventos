@@ -256,77 +256,101 @@ export default function Home() {
     window.open(`https://wa.me/5492364581199?text=${mensaje}`, "_blank");
   };
 
+  const handlePrint = () => {
+    const logoUrl = window.location.origin + "/logo.png";
+
+    const filasProductos = resumenProductos.map((cat) => `
+      <div class="categoria">
+        <p class="cat-nombre">${cat.nombre.toUpperCase()}</p>
+        ${cat.items.map((item) => `
+          <div class="fila">
+            <span>${item.nombre} × ${item.qty}</span>
+            <span class="monto">$${item.subtotal.toLocaleString("es-AR")}</span>
+          </div>
+        `).join("")}
+      </div>
+    `).join("");
+
+    const datosCliente = (nombre || telefono || fecha || invitados) ? `
+      <div class="datos-box">
+        <p class="label-titulo">DATOS DEL EVENTO</p>
+        <div class="datos-grid">
+          ${nombre ? `<p><strong>Nombre:</strong> ${nombre}</p>` : ""}
+          ${telefono ? `<p><strong>Teléfono:</strong> ${telefono}</p>` : ""}
+          ${fecha ? `<p><strong>Fecha:</strong> ${fecha}</p>` : ""}
+          ${invitados ? `<p><strong>Invitados:</strong> ${invitados}</p>` : ""}
+        </div>
+      </div>
+    ` : "";
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Presupuesto - Wina Eventos</title>
+        <style>
+          @page { size: A4; margin: 1.5cm; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: Arial, sans-serif; color: #1A1A2E; font-size: 13px; }
+          .header { text-align: center; border-bottom: 2px solid #1A1A2E; padding-bottom: 14px; margin-bottom: 16px; }
+          .logo { height: 70px; object-fit: contain; display: block; margin: 0 auto 6px; }
+          .tagline { font-size: 11px; color: #6B6560; }
+          .titulo { text-align: center; font-size: 15px; letter-spacing: 0.2em; font-weight: 700; margin-bottom: 12px; }
+          .fechas { display: flex; justify-content: space-between; font-size: 11px; color: #6B6560; margin-bottom: 16px; }
+          .datos-box { border: 1px solid #E8E2D9; border-radius: 4px; padding: 12px 14px; margin-bottom: 16px; page-break-inside: avoid; }
+          .datos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 16px; }
+          .datos-grid p { font-size: 12px; }
+          .label-titulo { font-weight: 700; font-size: 10px; letter-spacing: 0.1em; color: #9B7653; margin-bottom: 8px; }
+          .detalle-label { font-weight: 700; font-size: 10px; letter-spacing: 0.1em; color: #9B7653; margin-bottom: 10px; }
+          .categoria { margin-bottom: 12px; page-break-inside: avoid; }
+          .cat-nombre { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; border-bottom: 1px solid #E8E2D9; padding-bottom: 3px; margin-bottom: 5px; }
+          .fila { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
+          .monto { font-weight: 600; }
+          .total-box { border-top: 2px solid #1A1A2E; margin-top: 14px; padding-top: 14px; display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; page-break-inside: avoid; }
+          .pie { margin-top: 20px; padding-top: 14px; border-top: 1px solid #E8E2D9; font-size: 10px; color: #6B6560; line-height: 1.7; page-break-inside: avoid; }
+          .pie p { margin-bottom: 4px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <img src="${logoUrl}" alt="Wina Eventos" class="logo" />
+          <p class="tagline">Alquiler de Vajilla · Cristalería · Mantelería · Picadas</p>
+        </div>
+        <p class="titulo">PRESUPUESTO</p>
+        <div class="fechas">
+          <span>Emitido: ${hoy}</span>
+          <span>Válido hasta: ${validoHastaStr}</span>
+        </div>
+        ${datosCliente}
+        <p class="detalle-label">DETALLE</p>
+        ${filasProductos}
+        <div class="total-box">
+          <span>TOTAL ESTIMADO</span>
+          <span>$${total.toLocaleString("es-AR")}</span>
+        </div>
+        <div class="pie">
+          <p>* Precios orientativos vigentes al ${hoy}. Para eventos con fecha posterior a los 30 días, los valores se confirmarán al momento de la reserva.</p>
+          <p>📍 La Plata, City Bell y alrededores · @winaeventos</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const ventana = window.open("", "_blank", "width=800,height=600");
+    if (ventana) {
+      ventana.document.write(html);
+      ventana.document.close();
+      ventana.focus();
+      setTimeout(() => { ventana.print(); }, 600);
+    }
+  };
+
   // ─── RENDER ──────────────────────────────────────────────────────────────────
 
   return (
     <>
       <style>{estilos}</style>
-
-      {/* ── CONTENIDO SOLO VISIBLE AL IMPRIMIR ── */}
-      <div className="presupuesto-print-only">
-        <div style={{ fontFamily: "Arial, sans-serif", color: "#1A1A2E", maxWidth: 540, margin: "0 auto" }}>
-
-          {/* Encabezado con logo real — solo aparece una vez */}
-          <div style={{ textAlign: "center", borderBottom: "2px solid #1A1A2E", paddingBottom: 16, marginBottom: 18, pageBreakInside: "avoid", breakInside: "avoid" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Wina Eventos" style={{ height: 80, objectFit: "contain", display: "block", margin: "0 auto 6px" }} />
-            <p style={{ fontSize: 11, color: "#6B6560", margin: 0 }}>
-              Alquiler de Vajilla · Cristalería · Mantelería · Picadas
-            </p>
-          </div>
-
-          {/* Título y fechas — solo una vez */}
-          <div style={{ pageBreakInside: "avoid", breakInside: "avoid", marginBottom: 18 }}>
-            <p style={{ textAlign: "center", fontSize: 15, letterSpacing: "0.2em", fontWeight: 700, marginBottom: 12 }}>PRESUPUESTO</p>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6B6560" }}>
-              <span>Emitido: {hoy}</span>
-              <span>Válido hasta: {validoHastaStr}</span>
-            </div>
-          </div>
-
-          {/* Datos del cliente — solo una vez, al inicio */}
-          {(nombre || telefono || fecha || invitados) && (
-            <div style={{ border: "1px solid #E8E2D9", borderRadius: 6, padding: "12px 14px", marginBottom: 18, fontSize: 12, pageBreakInside: "avoid", breakInside: "avoid" }}>
-              <p style={{ fontWeight: 700, fontSize: 10, letterSpacing: "0.1em", color: "#9B7653", marginBottom: 8 }}>DATOS DEL EVENTO</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px 16px" }}>
-                {nombre && <p style={{ margin: 0 }}><strong>Nombre:</strong> {nombre}</p>}
-                {telefono && <p style={{ margin: 0 }}><strong>Teléfono:</strong> {telefono}</p>}
-                {fecha && <p style={{ margin: 0 }}><strong>Fecha:</strong> {fecha}</p>}
-                {invitados && <p style={{ margin: 0 }}><strong>Invitados:</strong> {invitados}</p>}
-              </div>
-            </div>
-          )}
-
-          {/* Detalle de productos — puede fluir a la siguiente página si es necesario */}
-          <p style={{ fontWeight: 700, fontSize: 10, letterSpacing: "0.1em", color: "#9B7653", marginBottom: 10 }}>DETALLE</p>
-          {resumenProductos.map((cat) => (
-            <div key={cat.nombre} style={{ marginBottom: 12, pageBreakInside: "avoid", breakInside: "avoid" }}>
-              <p style={{ fontSize: 10, fontWeight: 700, borderBottom: "1px solid #E8E2D9", paddingBottom: 3, marginBottom: 5, letterSpacing: "0.05em" }}>
-                {cat.nombre.toUpperCase()}
-              </p>
-              {cat.items.map((item, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "2px 0" }}>
-                  <span>{item.nombre} × {item.qty}</span>
-                  <span style={{ fontWeight: 600 }}>${item.subtotal.toLocaleString("es-AR")}</span>
-                </div>
-              ))}
-            </div>
-          ))}
-
-          {/* Total */}
-          <div style={{ borderTop: "2px solid #1A1A2E", marginTop: 14, paddingTop: 14, display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 700, pageBreakInside: "avoid", breakInside: "avoid" }}>
-            <span>TOTAL ESTIMADO</span>
-            <span>${total.toLocaleString("es-AR")}</span>
-          </div>
-
-          {/* Pie — solo al final del documento */}
-          <div style={{ marginTop: 20, paddingTop: 14, borderTop: "1px solid #E8E2D9", fontSize: 10, color: "#6B6560", lineHeight: 1.7, pageBreakInside: "avoid", breakInside: "avoid" }}>
-            <p>* Precios orientativos vigentes al {hoy}. Para eventos con fecha posterior a los 30 días, los valores se confirmarán al momento de la reserva.</p>
-            <p style={{ marginTop: 6 }}>📍 La Plata, City Bell y alrededores · @winaeventos</p>
-          </div>
-
-        </div>
-      </div>
 
       {/* ── APP PRINCIPAL ── */}
       <div className="wina-page">
