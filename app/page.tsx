@@ -280,13 +280,13 @@ export default function Home() {
 
     // ── TÍTULO ──
     doc.setFontSize(22);
-    doc.setTextColor(155, 118, 83); // copper #9B7653
+    doc.setTextColor(204, 51, 51); // rojo
     doc.setFont("helvetica", "bold");
     doc.text("Presupuesto", 14, 44);
 
     // ── FECHA Y CIUDAD ──
     doc.setFontSize(10);
-    doc.setTextColor(155, 118, 83);
+    doc.setTextColor(204, 51, 51);
     doc.setFont("helvetica", "bold");
     doc.text(`Fecha: ${hoy}`, 14, 52);
     doc.setTextColor(107, 101, 96);
@@ -334,19 +334,6 @@ export default function Home() {
     // ── TABLA DE PRODUCTOS ──
     const filas: any[][] = [];
     resumenProductos.forEach((cat) => {
-      filas.push([
-        {
-          content: cat.nombre,
-          colSpan: 4,
-          styles: {
-            fontStyle: "bold" as const,
-            fontSize: 9,
-            fillColor: [248, 245, 240] as [number, number, number],
-            textColor: [26, 26, 46] as [number, number, number],
-            cellPadding: 3,
-          },
-        },
-      ]);
       cat.items.forEach((item) => {
         const precioUnit = Math.round(item.subtotal / item.qty);
         filas.push([
@@ -364,10 +351,12 @@ export default function Home() {
       body: filas,
       theme: "striped",
       headStyles: {
-        fillColor: [26, 26, 46],
-        textColor: [255, 255, 255],
+        fillColor: [255, 255, 255],
+        textColor: [204, 51, 51],
         fontStyle: "bold",
         fontSize: 10,
+        lineColor: [220, 220, 220],
+        lineWidth: 0.3,
       },
       columnStyles: {
         0: { cellWidth: "auto", halign: "left" },
@@ -392,7 +381,7 @@ export default function Home() {
 
     doc.setFontSize(13);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(155, 118, 83);
+    doc.setTextColor(204, 51, 51);
     doc.text(
       `$${total.toLocaleString("es-AR")}`,
       pageWidth - 14,
