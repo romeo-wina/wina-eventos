@@ -256,94 +256,171 @@ export default function Home() {
     window.open(`https://wa.me/5492364581199?text=${mensaje}`, "_blank");
   };
 
-  const handlePrint = () => {
-    const logoUrl = window.location.origin + "/logo.png";
+  const handlePrint = async () => {
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
 
-    const filasProductos = resumenProductos.map((cat) => `
-      <div class="categoria">
-        <p class="cat-nombre">${cat.nombre.toUpperCase()}</p>
-        ${cat.items.map((item) => `
-          <div class="fila">
-            <span>${item.nombre} × ${item.qty}</span>
-            <span class="monto">$${item.subtotal.toLocaleString("es-AR")}</span>
-          </div>
-        `).join("")}
-      </div>
-    `).join("");
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
 
-    const datosCliente = (nombre || telefono || fecha || invitados) ? `
-      <div class="datos-box">
-        <p class="label-titulo">DATOS DEL EVENTO</p>
-        <div class="datos-grid">
-          ${nombre ? `<p><strong>Nombre:</strong> ${nombre}</p>` : ""}
-          ${telefono ? `<p><strong>Teléfono:</strong> ${telefono}</p>` : ""}
-          ${fecha ? `<p><strong>Fecha:</strong> ${fecha}</p>` : ""}
-          ${invitados ? `<p><strong>Invitados:</strong> ${invitados}</p>` : ""}
-        </div>
-      </div>
-    ` : "";
+    // Cargar logo como base64
+    const logoData = await fetch("/logo.png")
+      .then((r) => r.blob())
+      .then(
+        (blob) =>
+          new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          })
+      );
 
-    const html = `
-      <!DOCTYPE html>
-      <html lang="es">
-      <head>
-        <meta charset="UTF-8">
-        <title>Presupuesto - Wina Eventos</title>
-        <style>
-          @page { size: A4; margin: 1.5cm; }
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: Arial, sans-serif; color: #1A1A2E; font-size: 13px; }
-          .header { text-align: center; border-bottom: 2px solid #1A1A2E; padding-bottom: 14px; margin-bottom: 16px; }
-          .logo { height: 70px; object-fit: contain; display: block; margin: 0 auto 6px; }
-          .tagline { font-size: 11px; color: #6B6560; }
-          .titulo { text-align: center; font-size: 15px; letter-spacing: 0.2em; font-weight: 700; margin-bottom: 12px; }
-          .fechas { display: flex; justify-content: space-between; font-size: 11px; color: #6B6560; margin-bottom: 16px; }
-          .datos-box { border: 1px solid #E8E2D9; border-radius: 4px; padding: 12px 14px; margin-bottom: 16px; page-break-inside: avoid; }
-          .datos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 16px; }
-          .datos-grid p { font-size: 12px; }
-          .label-titulo { font-weight: 700; font-size: 10px; letter-spacing: 0.1em; color: #9B7653; margin-bottom: 8px; }
-          .detalle-label { font-weight: 700; font-size: 10px; letter-spacing: 0.1em; color: #9B7653; margin-bottom: 10px; }
-          .categoria { margin-bottom: 12px; page-break-inside: avoid; }
-          .cat-nombre { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; border-bottom: 1px solid #E8E2D9; padding-bottom: 3px; margin-bottom: 5px; }
-          .fila { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
-          .monto { font-weight: 600; }
-          .total-box { border-top: 2px solid #1A1A2E; margin-top: 14px; padding-top: 14px; display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; page-break-inside: avoid; }
-          .pie { margin-top: 20px; padding-top: 14px; border-top: 1px solid #E8E2D9; font-size: 10px; color: #6B6560; line-height: 1.7; page-break-inside: avoid; }
-          .pie p { margin-bottom: 4px; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <img src="${logoUrl}" alt="Wina Eventos" class="logo" />
-          <p class="tagline">Alquiler de Vajilla · Cristalería · Mantelería · Picadas</p>
-        </div>
-        <p class="titulo">PRESUPUESTO</p>
-        <div class="fechas">
-          <span>Emitido: ${hoy}</span>
-          <span>Válido hasta: ${validoHastaStr}</span>
-        </div>
-        ${datosCliente}
-        <p class="detalle-label">DETALLE</p>
-        ${filasProductos}
-        <div class="total-box">
-          <span>TOTAL ESTIMADO</span>
-          <span>$${total.toLocaleString("es-AR")}</span>
-        </div>
-        <div class="pie">
-          <p>* Precios orientativos vigentes al ${hoy}. Para eventos con fecha posterior a los 30 días, los valores se confirmarán al momento de la reserva.</p>
-          <p>📍 La Plata, City Bell y alrededores · @winaeventos</p>
-        </div>
-      </body>
-      </html>
-    `;
+    // ── LOGO ──
+    doc.addImage(logoData, "PNG", 14, 10, 45, 22);
 
-    const ventana = window.open("", "_blank", "width=800,height=600");
-    if (ventana) {
-      ventana.document.write(html);
-      ventana.document.close();
-      ventana.focus();
-      setTimeout(() => { ventana.print(); }, 600);
+    // ── TÍTULO ──
+    doc.setFontSize(22);
+    doc.setTextColor(155, 118, 83); // copper #9B7653
+    doc.setFont("helvetica", "bold");
+    doc.text("Presupuesto", 14, 44);
+
+    // ── FECHA Y CIUDAD ──
+    doc.setFontSize(10);
+    doc.setTextColor(155, 118, 83);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Fecha: ${hoy}`, 14, 52);
+    doc.setTextColor(107, 101, 96);
+    doc.setFont("helvetica", "normal");
+    doc.text("Ciudad de La Plata", pageWidth - 14, 52, { align: "right" });
+
+    // ── SEPARADOR ──
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 56, pageWidth - 14, 56);
+
+    // ── DATOS DEL CLIENTE ──
+    let y = 64;
+    doc.setFontSize(10);
+    doc.setTextColor(26, 26, 46);
+    doc.setFont("helvetica", "bold");
+    doc.text("Cliente", 14, y);
+    doc.text("Fecha del evento", pageWidth / 2, y);
+
+    y += 6;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+
+    if (nombre) {
+      doc.text(`Nombre: ${nombre}`, 14, y);
+      y += 5;
     }
+    if (telefono) {
+      doc.text(`Telefono: ${telefono}`, 14, y);
+    }
+    if (fecha) {
+      doc.text(fecha, pageWidth / 2, y - (nombre ? 5 : 0));
+    }
+    if (invitados) {
+      doc.text(`Invitados: ${invitados}`, pageWidth / 2, y);
+    }
+
+    y += 10;
+
+    // ── SEPARADOR ──
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, y, pageWidth - 14, y);
+    y += 4;
+
+    // ── TABLA DE PRODUCTOS ──
+    const filas: any[][] = [];
+    resumenProductos.forEach((cat) => {
+      filas.push([
+        {
+          content: cat.nombre,
+          colSpan: 4,
+          styles: {
+            fontStyle: "bold" as const,
+            fontSize: 9,
+            fillColor: [248, 245, 240] as [number, number, number],
+            textColor: [26, 26, 46] as [number, number, number],
+            cellPadding: 3,
+          },
+        },
+      ]);
+      cat.items.forEach((item) => {
+        const precioUnit = Math.round(item.subtotal / item.qty);
+        filas.push([
+          item.nombre,
+          item.qty,
+          `$${precioUnit.toLocaleString("es-AR")}`,
+          `$${item.subtotal.toLocaleString("es-AR")}`,
+        ]);
+      });
+    });
+
+    autoTable(doc, {
+      startY: y,
+      head: [["Descripción", "Cantidad", "Precio unitario", "Precio total"]],
+      body: filas,
+      theme: "striped",
+      headStyles: {
+        fillColor: [26, 26, 46],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        fontSize: 10,
+      },
+      columnStyles: {
+        0: { cellWidth: "auto", halign: "left" },
+        1: { cellWidth: 25, halign: "center" },
+        2: { cellWidth: 38, halign: "right" },
+        3: { cellWidth: 38, halign: "right" },
+      },
+      styles: {
+        fontSize: 10,
+        cellPadding: 4,
+        lineColor: [232, 226, 217],
+      },
+      alternateRowStyles: {
+        fillColor: [248, 245, 240],
+      },
+    });
+
+    // ── TOTAL ──
+    const finalY = (doc as any).lastAutoTable.finalY + 6;
+    doc.setDrawColor(200, 200, 200);
+    doc.line(pageWidth / 2, finalY, pageWidth - 14, finalY);
+
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(155, 118, 83);
+    doc.text(
+      `$${total.toLocaleString("es-AR")}`,
+      pageWidth - 14,
+      finalY + 8,
+      { align: "right" }
+    );
+
+    // ── PIE ──
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(107, 101, 96);
+    doc.text(
+      `* Precios orientativos vigentes al ${hoy}. Para eventos con fecha posterior a los 30 dias, los valores se confirmaran al momento de la reserva.`,
+      14,
+      finalY + 20,
+      { maxWidth: pageWidth - 28 }
+    );
+    doc.text(
+      "La Plata, City Bell y alrededores · @winaeventos",
+      14,
+      finalY + 28
+    );
+
+    // ── GUARDAR ──
+    const nombreArchivo = nombre
+      ? `Presupuesto_Wina_${nombre.replace(/\s+/g, "_")}.pdf`
+      : `Presupuesto_Wina.pdf`;
+    doc.save(nombreArchivo);
   };
 
   // ─── RENDER ──────────────────────────────────────────────────────────────────
@@ -582,7 +659,7 @@ export default function Home() {
 
             {/* Acciones */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button className="wina-btn-pdf" onClick={() => window.print()}>
+              <button className="wina-btn-pdf" onClick={handlePrint}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Guardar como PDF
               </button>
