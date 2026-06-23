@@ -170,6 +170,15 @@ export default function Home() {
   const [invitados, setInvitados] = useState("");
   const [catActiva, setCatActiva] = useState("Datos personales");
   const [verPresupuesto, setVerPresupuesto] = useState(false);
+  const [nroPedido, setNroPedido] = useState("");
+
+  const abrirPresupuesto = () => {
+    const d = new Date();
+    const yymmdd = d.toISOString().slice(2, 10).replace(/-/g, "");
+    const num = String(Math.floor(Math.random() * 900) + 100);
+    setNroPedido(`WE-${yymmdd}-${num}`);
+    setVerPresupuesto(true);
+  };
 
   // Resalta el tab según la sección visible al scrollear
   useEffect(() => {
@@ -280,13 +289,19 @@ export default function Home() {
 
     // ── TÍTULO ──
     doc.setFontSize(22);
-    doc.setTextColor(204, 51, 51); // rojo
+    doc.setTextColor(47, 84, 150); // azul corporativo
     doc.setFont("helvetica", "bold");
     doc.text("Presupuesto", 14, 44);
 
+    // ── N° DE PEDIDO (arriba a la derecha) ──
+    doc.setFontSize(9);
+    doc.setTextColor(107, 101, 96);
+    doc.setFont("helvetica", "normal");
+    doc.text(`N° ${nroPedido}`, pageWidth - 14, 14, { align: "right" });
+
     // ── FECHA Y CIUDAD ──
     doc.setFontSize(10);
-    doc.setTextColor(204, 51, 51);
+    doc.setTextColor(47, 84, 150);
     doc.setFont("helvetica", "bold");
     doc.text(`Fecha: ${hoy}`, 14, 52);
     doc.setTextColor(107, 101, 96);
@@ -352,7 +367,7 @@ export default function Home() {
       theme: "striped",
       headStyles: {
         fillColor: [255, 255, 255],
-        textColor: [204, 51, 51],
+        textColor: [47, 84, 150],
         fontStyle: "bold",
         fontSize: 10,
         lineColor: [220, 220, 220],
@@ -381,7 +396,7 @@ export default function Home() {
 
     doc.setFontSize(13);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(204, 51, 51);
+    doc.setTextColor(47, 84, 150);
     doc.text(
       `$${total.toLocaleString("es-AR")}`,
       pageWidth - 14,
@@ -575,7 +590,7 @@ export default function Home() {
           </div>
           <button
             className="wina-presbtn"
-            onClick={() => setVerPresupuesto(true)}
+            onClick={abrirPresupuesto}
             disabled={itemsSeleccionados === 0}
             style={{ opacity: itemsSeleccionados === 0 ? 0.45 : 1, cursor: itemsSeleccionados === 0 ? "not-allowed" : "pointer" }}
           >
@@ -594,7 +609,7 @@ export default function Home() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
               <div>
                 <h2 className="wina-serif" style={{ fontSize: 28, fontWeight: 600, margin: 0 }}>Presupuesto</h2>
-                <p style={{ fontSize: 12, color: "#6B6560", marginTop: 3 }}>Válido hasta el {validoHastaStr}</p>
+                <p style={{ fontSize: 12, color: "#6B6560", marginTop: 3 }}>N° {nroPedido} · Válido hasta el {validoHastaStr}</p>
               </div>
               <button
                 onClick={() => setVerPresupuesto(false)}
