@@ -299,17 +299,14 @@ export default function Home() {
     doc.setFont("times", "bold");
     doc.setFontSize(14);
     doc.setTextColor(26, 26, 46);
-    doc.setCharSpace(3);
-    doc.text("PRESUPUESTO", pageWidth / 2, 50, { align: "center" });
-    doc.setCharSpace(0);
+    doc.text("P R E S U P U E S T O", pageWidth / 2, 50, { align: "center" });
 
-    // ── Fechas y N° pedido ──
+    // ── Fechas ──
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(107, 101, 96);
     doc.text(`Emitido: ${hoy}`, mg, 58);
     doc.text(`Válido hasta: ${validoHastaStr}`, pageWidth - mg, 58, { align: "right" });
-    doc.text(`N° ${nroPedido}`, pageWidth / 2, 58, { align: "center" });
 
     let y = 66;
 
@@ -369,9 +366,7 @@ export default function Home() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(155, 118, 83);
-    doc.setCharSpace(1);
-    doc.text("DETALLE", mg, y);
-    doc.setCharSpace(0);
+    doc.text("D E T A L L E", mg, y);
     y += 4;
 
     doc.setDrawColor(200, 200, 200);
@@ -381,7 +376,7 @@ export default function Home() {
 
     // ── Items (sin categorías) ──
     doc.setFontSize(10);
-    doc.setTextColor(26, 26, 46);
+    doc.setTextColor(0, 0, 0);
 
     resumenProductos.forEach((cat) => {
       cat.items.forEach((item) => {
