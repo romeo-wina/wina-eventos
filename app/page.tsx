@@ -24,8 +24,8 @@ const categorias = [
     nombre: "Acero inoxidable",
     productos: [
       { id: 10, nombre: "Tenedor de mesa", precio: 350 },
-      { id: 11, nombre: "Tenedor de postre", precio: 350 },
       { id: 12, nombre: "Cuchillo de mesa", precio: 350 },
+      { id: 11, nombre: "Tenedor de postre", precio: 350 },
       { id: 13, nombre: "Cuchara", precio: 350 },
       { id: 14, nombre: "Cuchara de postre", precio: 350 },
       { id: 15, nombre: "Cuchara de café", precio: 150 },
@@ -267,163 +267,173 @@ export default function Home() {
 
   const handlePrint = async () => {
     const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
 
     const doc = new jsPDF({ unit: "mm", format: "a4" });
     const pageWidth = doc.internal.pageSize.getWidth();
+    const mg = 14; // margen
 
-    // Cargar logo como base64
+    // ── LOGO centrado ──
     const logoData = await fetch("/logo.png")
       .then((r) => r.blob())
-      .then(
-        (blob) =>
-          new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(blob);
-          })
-      );
+      .then((blob) => new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      }));
 
-    // ── LOGO ──
-    doc.addImage(logoData, "PNG", 14, 10, 45, 22);
+    const logoW = 55;
+    doc.addImage(logoData, "PNG", (pageWidth - logoW) / 2, 8, logoW, 24);
 
-    // ── TÍTULO ──
-    doc.setFontSize(22);
-    doc.setTextColor(47, 84, 150); // azul corporativo
-    doc.setFont("helvetica", "bold");
-    doc.text("Presupuesto", 14, 44);
-
-    // ── N° DE PEDIDO (arriba a la derecha) ──
-    doc.setFontSize(9);
-    doc.setTextColor(107, 101, 96);
+    // ── Tagline ──
     doc.setFont("helvetica", "normal");
-    doc.text(`N° ${nroPedido}`, pageWidth - 14, 14, { align: "right" });
-
-    // ── FECHA Y CIUDAD ──
-    doc.setFontSize(10);
-    doc.setTextColor(47, 84, 150);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Fecha: ${hoy}`, 14, 52);
+    doc.setFontSize(8);
     doc.setTextColor(107, 101, 96);
-    doc.setFont("helvetica", "normal");
-    doc.text("Ciudad de La Plata", pageWidth - 14, 52, { align: "right" });
+    doc.text("Alquiler de Vajilla  ·  Cristalería  ·  Mantelería  ·  Picadas", pageWidth / 2, 36, { align: "center" });
 
-    // ── SEPARADOR ──
-    doc.setDrawColor(200, 200, 200);
-    doc.line(14, 56, pageWidth - 14, 56);
+    // ── Separador superior ──
+    doc.setDrawColor(26, 26, 46);
+    doc.setLineWidth(0.6);
+    doc.line(mg, 40, pageWidth - mg, 40);
 
-    // ── DATOS DEL CLIENTE ──
-    let y = 64;
-    doc.setFontSize(10);
+    // ── PRESUPUESTO ──
+    doc.setFont("times", "bold");
+    doc.setFontSize(14);
     doc.setTextColor(26, 26, 46);
-    doc.setFont("helvetica", "bold");
-    doc.text("Cliente", 14, y);
-    doc.text("Fecha del evento", pageWidth / 2, y);
+    doc.setCharSpace(3);
+    doc.text("PRESUPUESTO", pageWidth / 2, 50, { align: "center" });
+    doc.setCharSpace(0);
 
-    y += 6;
+    // ── Fechas y N° pedido ──
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.setTextColor(60, 60, 60);
+    doc.setTextColor(107, 101, 96);
+    doc.text(`Emitido: ${hoy}`, mg, 58);
+    doc.text(`Válido hasta: ${validoHastaStr}`, pageWidth - mg, 58, { align: "right" });
+    doc.text(`N° ${nroPedido}`, pageWidth / 2, 58, { align: "center" });
 
-    if (nombre) {
-      doc.text(`Nombre: ${nombre}`, 14, y);
+    let y = 66;
+
+    // ── Datos del cliente ──
+    if (nombre || telefono || fecha || invitados) {
+      doc.setDrawColor(210, 210, 210);
+      doc.setLineWidth(0.3);
+      doc.line(mg, y, pageWidth - mg, y);
+      y += 6;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(155, 118, 83);
+      doc.setCharSpace(1);
+      doc.text("DATOS DEL EVENTO", mg, y);
+      doc.setCharSpace(0);
       y += 5;
-    }
-    if (telefono) {
-      doc.text(`Telefono: ${telefono}`, 14, y);
-    }
-    if (fecha) {
-      doc.text(fecha, pageWidth / 2, y - (nombre ? 5 : 0));
-    }
-    if (invitados) {
-      doc.text(`Invitados: ${invitados}`, pageWidth / 2, y);
+
+      const col2 = pageWidth / 2 + 5;
+      doc.setFontSize(9);
+      doc.setTextColor(40, 40, 40);
+
+      if (nombre || telefono) {
+        if (nombre) {
+          doc.setFont("helvetica", "bold");
+          doc.text("Nombre:", mg, y);
+          doc.setFont("helvetica", "normal");
+          doc.text(nombre, mg + 20, y);
+        }
+        if (telefono) {
+          doc.setFont("helvetica", "bold");
+          doc.text("Teléfono:", col2, y);
+          doc.setFont("helvetica", "normal");
+          doc.text(telefono, col2 + 22, y);
+        }
+        y += 5;
+      }
+      if (fecha || invitados) {
+        if (fecha) {
+          doc.setFont("helvetica", "bold");
+          doc.text("Fecha evento:", mg, y);
+          doc.setFont("helvetica", "normal");
+          doc.text(fecha, mg + 30, y);
+        }
+        if (invitados) {
+          doc.setFont("helvetica", "bold");
+          doc.text("Invitados:", col2, y);
+          doc.setFont("helvetica", "normal");
+          doc.text(String(invitados), col2 + 22, y);
+        }
+        y += 5;
+      }
+      y += 3;
     }
 
-    y += 10;
-
-    // ── SEPARADOR ──
-    doc.setDrawColor(200, 200, 200);
-    doc.line(14, y, pageWidth - 14, y);
+    // ── DETALLE label ──
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(155, 118, 83);
+    doc.setCharSpace(1);
+    doc.text("DETALLE", mg, y);
+    doc.setCharSpace(0);
     y += 4;
 
-    // ── TABLA DE PRODUCTOS ──
-    const filas: any[][] = [];
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.line(mg, y, pageWidth - mg, y);
+    y += 6;
+
+    // ── Items (sin categorías) ──
+    doc.setFontSize(10);
+    doc.setTextColor(26, 26, 46);
+
     resumenProductos.forEach((cat) => {
       cat.items.forEach((item) => {
-        const precioUnit = Math.round(item.subtotal / item.qty);
-        filas.push([
-          item.nombre,
-          item.qty,
-          `$${precioUnit.toLocaleString("es-AR")}`,
-          `$${item.subtotal.toLocaleString("es-AR")}`,
-        ]);
+        if (y > 265) { doc.addPage(); y = 20; }
+        const sub = `$${item.subtotal.toLocaleString("es-AR")}`;
+        doc.setFont("helvetica", "normal");
+        doc.text(`${item.nombre} × ${item.qty}`, mg, y);
+        doc.setFont("helvetica", "bold");
+        doc.text(sub, pageWidth - mg, y, { align: "right" });
+        y += 7;
       });
     });
 
-    autoTable(doc, {
-      startY: y,
-      head: [["Descripción", "Cantidad", "Precio unitario", "Precio total"]],
-      body: filas,
-      theme: "striped",
-      headStyles: {
-        fillColor: [255, 255, 255],
-        textColor: [47, 84, 150],
-        fontStyle: "bold",
-        fontSize: 10,
-        lineColor: [220, 220, 220],
-        lineWidth: 0.3,
-      },
-      columnStyles: {
-        0: { cellWidth: "auto", halign: "left" },
-        1: { cellWidth: 25, halign: "center" },
-        2: { cellWidth: 38, halign: "right" },
-        3: { cellWidth: 38, halign: "right" },
-      },
-      styles: {
-        fontSize: 10,
-        cellPadding: 4,
-        lineColor: [232, 226, 217],
-      },
-      alternateRowStyles: {
-        fillColor: [248, 245, 240],
-      },
-    });
+    // ── Líneas dobles antes del total ──
+    y += 2;
+    doc.setDrawColor(26, 26, 46);
+    doc.setLineWidth(0.8);
+    doc.line(mg, y, pageWidth - mg, y);
+    doc.setLineWidth(0.3);
+    doc.line(mg, y + 2.5, pageWidth - mg, y + 2.5);
+    y += 10;
 
-    // ── TOTAL ──
-    const finalY = (doc as any).lastAutoTable.finalY + 6;
-    doc.setDrawColor(200, 200, 200);
-    doc.line(pageWidth / 2, finalY, pageWidth - 14, finalY);
-
-    doc.setFontSize(13);
+    // ── TOTAL ESTIMADO ──
+    doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(47, 84, 150);
-    doc.text(
-      `$${total.toLocaleString("es-AR")}`,
-      pageWidth - 14,
-      finalY + 8,
-      { align: "right" }
-    );
+    doc.setTextColor(26, 26, 46);
+    doc.text("TOTAL ESTIMADO", mg, y);
+    doc.text(`$${total.toLocaleString("es-AR")}`, pageWidth - mg, y, { align: "right" });
 
-    // ── PIE ──
+    // ── Separador footer ──
+    y += 8;
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.line(mg, y, pageWidth - mg, y);
+    y += 6;
+
+    // ── Disclaimer ──
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(107, 101, 96);
-    doc.text(
-      `* Precios orientativos vigentes al ${hoy}. Para eventos con fecha posterior a los 30 dias, los valores se confirmaran al momento de la reserva.`,
-      14,
-      finalY + 20,
-      { maxWidth: pageWidth - 28 }
-    );
-    doc.text(
-      "La Plata, City Bell y alrededores · @winaeventos",
-      14,
-      finalY + 28
-    );
+    const aviso = `* Precios orientativos vigentes al ${hoy}. Para eventos con fecha posterior a los 30 dias, los valores deberan ser confirmados al momento de la reserva.`;
+    const lineas = doc.splitTextToSize(aviso, pageWidth - 28);
+    doc.text(lineas, mg, y);
+    y += lineas.length * 4.5 + 4;
 
-    // ── GUARDAR ──
+    // ── Footer final ──
+    doc.text("La Plata  ·  @winaeventos", mg, y);
+
+    // ── Guardar ──
     const nombreArchivo = nombre
       ? `Presupuesto_Wina_${nombre.replace(/\s+/g, "_")}.pdf`
-      : `Presupuesto_Wina.pdf`;
+      : "Presupuesto_Wina.pdf";
     doc.save(nombreArchivo);
   };
 
